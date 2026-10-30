@@ -1,9 +1,11 @@
+using System.Collections.Concurrent;
+
 namespace ViewsAndEmails;
 
 public sealed class AnalyticsAndEmailJobs
 {
-    public readonly Dictionary<string, int> Views = new();
-    public readonly Queue<string> EmailJobs = new();
+    public readonly ConcurrentDictionary<string, int> Views = new();
+    public readonly ConcurrentQueue<string> EmailJobs = new();
     public readonly List<string> SentEmails = new();
 
     readonly object _sentSync = new();
@@ -11,10 +13,10 @@ public sealed class AnalyticsAndEmailJobs
 
     public void RecordView(string product)
     {
-        if (!Views.ContainsKey(product))
-            Views.Add(product, 0);
+        Views.AddOrUpdate(product, addValue: 1, updateValueFactory: (_, current) =>
 
-        Views[product] = Views[product] + 1;
+            current + 1
+        );
     }
 
     public void PlaceOrder(int orderId)
@@ -29,15 +31,15 @@ public sealed class AnalyticsAndEmailJobs
             try
             {
                 string? job = null;
-                if (EmailJobs.Count > 0)
-                    job = EmailJobs.Dequeue();
-
-                if (job is not null)
+                if (EmailJobs.TryDequeue(out job))
                 {
                     lock (_sentSync)
+                    {
                         SentEmails.Add(job);
+                    }
                     continue;
                 }
+
 
                 if (ProducersDone && EmailJobs.Count == 0)
                     return;
