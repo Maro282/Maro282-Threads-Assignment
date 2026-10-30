@@ -13,8 +13,11 @@ Group / ID: G4
 
 ## What you changed
 
--
+- i have made the operation on incrementing the views atomic so no thread could do anything while another thread is working
 
 ## When would you protect the update differently
 
--
+- i will use another methodology like lock if the operation containing :-
+- If condition
+- more than one variable wanted to be updated
+- or the operation is more complex than incrementing one variable

@@ -6,6 +6,6 @@ public sealed class MenuViewCounter
 
     public void RegisterView()
     {
-        Views++;
+        Interlocked.Increment(ref Views);
     }
 }
