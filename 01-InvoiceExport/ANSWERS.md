@@ -15,4 +15,13 @@ Group / ID: G4
 
 ## What you changed
 
--
+- i have changed any thread.sleep() function with Task.delay() to non block the thread while waiting
+
+- any function i used await inside it changed to async function and returning Task of the returning type we used before modification
+
+- any void function transformed to async task not async void to be awaitable elsewhere
+
+## Time Took
+
+- Before modification => 6.5 s
+- After => 6.0 s
