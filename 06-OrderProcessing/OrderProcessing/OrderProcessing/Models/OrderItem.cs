@@ -1,5 +1,4 @@
-﻿
-namespace OrderProcessing;
+﻿namespace OrderProcessing.Models;
 
 public class OrderItem
 {

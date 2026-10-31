@@ -4,6 +4,8 @@ namespace OrderProcessing;
 
 public static class DataFiles
 {
+    // Thre folder that all files live in
+    public static readonly string DataFolder = Path.Combine(AppContext.BaseDirectory, "Data");
     public const string customers = "customers.json";
     public const string products = "products.json";
     public const string coupons = "coupons.json";

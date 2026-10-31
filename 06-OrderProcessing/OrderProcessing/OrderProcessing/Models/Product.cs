@@ -1,6 +1,4 @@
-﻿
-
-namespace OrderProcessing;
+﻿namespace OrderProcessing.Models;
 
 public class Product
 {
@@ -8,6 +6,5 @@ public class Product
     public string Name { get; set; }
     public decimal Price { get; set; }
     public int StockQuantity { get; set; }
-
     public decimal WeightKg { get; set; }
 }
