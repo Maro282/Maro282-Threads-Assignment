@@ -3,7 +3,7 @@
 public class Order
 {
 
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public int CustomerId { get; set; }
     public List<OrderItem> Items { get; set; }
     public string? CouponCode { get; set; }
