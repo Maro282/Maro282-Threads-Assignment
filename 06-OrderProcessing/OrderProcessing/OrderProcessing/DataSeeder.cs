@@ -1,11 +1,48 @@
 ﻿
 
 using OrderProcessing.Models;
+using System.Runtime.CompilerServices;
 
 namespace OrderProcessing;
 
 public class DataSeeder
 {
+
+    public static async Task ResetAsync()
+    {
+
+        // 1- Delete Data Folder
+        if (Directory.Exists(DataFiles.DataFolder))
+            Directory.Delete(DataFiles.DataFolder , recursive: true);
+
+        var cts = new CancellationTokenSource();
+        CancellationToken ct = cts.Token;
+
+        // 2- Recreates files again
+
+        // Having Data
+        await CreateSeedFile(DataFiles.customers, Customers(), ct);
+        await CreateSeedFile(DataFiles.products, Products(), ct);
+        await CreateSeedFile(DataFiles.coupons, Coupons(), ct);
+        await CreateSeedFile(DataFiles.incoming_orders, IncomingOrders(), ct);
+
+        //Have not Data
+
+        await CreateSeedFile(DataFiles.orders, new List<Order>(), ct);
+        await CreateSeedFile(DataFiles.emails, new List<EmailMessage>(), ct);
+        await CreateSeedFile(DataFiles.emailRetry, new List<EmailMessage>(), ct);
+        await CreateSeedFile(DataFiles.payments, new List<PaymentTransaction>(), ct);
+
+    }
+
+    private static async Task CreateSeedFile<T>(string fileName, List<T> items, CancellationToken ct)
+    {
+
+        await JsonFileStore.WriteToJsonFileASync<T>(fileName, items, ct);
+        Console.WriteLine($"[Seeder] {fileName} -> {items.Count} records.");
+    }
+
+
     public static List<Customer> Customers() => new()
     {
         new() { Id = 1,  Name = "Ahmed Ali",      Email = "ahmed.ali@example.com",      IsActive = true,  LoyaltyTier = LoyaltyTier.Gold },
@@ -84,3 +121,4 @@ public class DataSeeder
     }
 
 }
+

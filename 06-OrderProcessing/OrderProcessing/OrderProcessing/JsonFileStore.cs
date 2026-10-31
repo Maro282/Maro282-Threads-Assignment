@@ -92,7 +92,7 @@ public class JsonFileStore
     {
         string folderPath = DataFiles.DataFolder;
         string filePath = Path.Combine(folderPath, fileName);
-        Directory.CreateDirectory(filePath);
+        Directory.CreateDirectory(folderPath);
 
         await Gate.WaitAsync(ct);
 
@@ -127,7 +127,7 @@ public class JsonFileStore
     {
         string folderPath = DataFiles.DataFolder;
         string filePath = Path.Combine(folderPath, fileName);
-        Directory.CreateDirectory(filePath);
+        Directory.CreateDirectory(folderPath);
 
         Gate.Wait();
 
