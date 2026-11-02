@@ -205,5 +205,56 @@ public class JsonFileStore
     }
 
 
+    // Sync
+
+    public static TResult UpdateJsonFile<T, TResult>(string fileName, Func<List<T>,
+                                                     TResult> change)
+    {
+        string filePath = Path.Combine(DataFiles.DataFolder, fileName);
+        Gate.Wait();
+        try
+        {
+            // 1- read
+            List<T> items = new();
+            if (File.Exists(filePath))
+            {
+                string json = File.ReadAllText(filePath);
+                try
+                {
+                    items = JsonSerializer.Deserialize<List<T>>(json, _options)
+                        ?? throw new DataFileCorruptedException(fileName);
+                }
+                catch (JsonException ex)
+                {
+                    throw new DataFileCorruptedException(fileName, ex);
+                }
+            }
+
+            // 2- update
+            TResult result = change(items);
+
+            // 3- write
+            Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
+            string temp = Path.Combine(DataFiles.DataFolder, $"{fileName} - temp");
+            try
+            {
+                File.WriteAllText(temp, JsonSerializer.Serialize(items, _options));
+                File.Move(temp, filePath, overwrite: true);
+            }
+            catch
+            {
+                if (File.Exists(temp)) File.Delete(temp);
+                throw;
+            }
+            return result;
+        }
+        finally
+        {
+            Gate.Release();
+        }
+    }
+
+
+
 
 }

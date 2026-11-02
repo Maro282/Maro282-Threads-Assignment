@@ -35,11 +35,11 @@ public class ProductRepository
 
         //Openning connection
         Log.Info(nameof(ProductRepository), "Oppening Connection .. ");
-        await Task.Delay(200);
+        await Task.Delay(200, ct);
 
         //Begin Transation
         Log.Info(nameof(ProductRepository), "Begining Transaction .. ");
-        await Task.Delay(100);
+        await Task.Delay(100, ct);
 
         //Updating product
         Log.Info(nameof(ProductRepository), $"Updating stock for Product #{productId} (reserve {qty})...");

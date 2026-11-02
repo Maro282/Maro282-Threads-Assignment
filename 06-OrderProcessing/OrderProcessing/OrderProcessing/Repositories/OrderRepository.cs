@@ -56,8 +56,6 @@ public class OrderRepository
 
     public async Task<List<Order>> GetByStatusAsync(OrderStatus status, CancellationToken ct)
     {
-
-
         Log.Info(Name, "Opening connection...");
         await Task.Delay(200, ct);
 
