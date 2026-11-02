@@ -8,15 +8,15 @@ namespace OrderProcessing;
 public class DataSeeder
 {
 
-    public static async Task ResetAsync()
+    public static async Task ResetAsync(CancellationToken ct)
     {
 
         // 1- Delete Data Folder
         if (Directory.Exists(DataFiles.DataFolder))
-            Directory.Delete(DataFiles.DataFolder , recursive: true);
+            Directory.Delete(DataFiles.DataFolder, recursive: true);
 
-        var cts = new CancellationTokenSource();
-        CancellationToken ct = cts.Token;
+        //var cts = new CancellationTokenSource();
+        //CancellationToken ct = cts.Token;
 
         // 2- Recreates files again
 

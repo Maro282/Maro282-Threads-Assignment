@@ -32,6 +32,7 @@ public class OrderValidator
         {
             order.Status = OrderStatus.Rejected;
             Log.Error(Name, $"Order #{order.Id} rejected: Customer id not found");
+            order.FailureReason = "Customer id not found";
             return false;
 
         }
@@ -41,6 +42,7 @@ public class OrderValidator
         {
             order.Status = OrderStatus.Rejected;
             Log.Error(Name, $"Order #{order.Id} rejected: Customer is inactive");
+            order.FailureReason = " Customer is inactive";
             return false;
         }
 
@@ -52,6 +54,8 @@ public class OrderValidator
             if (product is null)
             {
                 Log.Error(Name, $"Order #{order.Id} rejected: Product : {product?.Id} not found");
+
+                order.FailureReason = $"Product : {product?.Id} not found";
                 return false;
             }
             products.Add(product!);
@@ -63,6 +67,8 @@ public class OrderValidator
             if (products[0].StockQuantity < order.Items[0].Quantity)
             {
                 Log.Error(Name, $"Order #{order.Id} rejected: Insufficient stock for '{products[i].Name}'");
+                order.FailureReason = $"Insufficient stock for '{products[i].Name}'";
+
                 return false;
             }
         }
@@ -78,6 +84,8 @@ public class OrderValidator
             {
                 order.Status = OrderStatus.Rejected;
                 Log.Error(Name, $"Order #{order.Id} rejected: Coupon {order.CouponCode} not found");
+                order.FailureReason = $"Coupon {order.CouponCode} not found";
+
                 return false;
 
             }
@@ -86,6 +94,7 @@ public class OrderValidator
             {
                 order.Status = OrderStatus.Rejected;
                 Log.Error(Name, $"Order #{order.Id} rejected: Coupon {order.CouponCode} Expired");
+                order.FailureReason = $"Coupon {order.CouponCode} Expired";
                 return false;
 
             }

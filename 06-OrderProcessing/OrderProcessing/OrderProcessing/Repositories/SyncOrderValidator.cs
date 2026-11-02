@@ -19,7 +19,7 @@ public class SyncOrderValidator
         _couponRepository = couponRepository;
     }
 
-    public bool ValidateOrderAsync(Order order)
+    public bool ValidateOrder(Order order)
     {
 
         Log.Info(Name, $"Validating Order #{order.Id}...");
