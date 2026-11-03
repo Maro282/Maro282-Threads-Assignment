@@ -65,5 +65,55 @@ public class ProductRepository
     }
 
 
+    // Part 8 section 8.3 Race condition
+    // in this function i mostly used the same cod ein the reserveStockAsync but there is a main difference
+    //which is reading the product outside and updating in a distinct step not in one step like 
+    // reserveStockAysnc
+    public async Task<bool> ReserveStockUnsafeAsync(int productId, int qty, CancellationToken ct)
+    {
+        //Openning connection
+        Log.Info(nameof(ProductRepository), "Oppening Connection .. ");
+        await Task.Delay(200, ct);
+
+        //Begin Transation
+        Log.Info(nameof(ProductRepository), "Begining Transaction .. ");
+        await Task.Delay(100, ct);
+
+        Product? product = await GetByIdAsync(productId, ct);
+
+        if (product is null || product.StockQuantity < qty) return false;
+
+
+        // Updating product
+        Log.Info(nameof(ProductRepository),
+            $"Updating stock for Product #{productId} (reserve {qty})...");
+
+        await Task.Delay(400, ct);
+
+        // 7. Save updated product
+        await JsonFileStore.UpdateJsonFileAsync<Product, bool>(DataFiles.products, products =>
+
+        {
+            Product? currentProduct =
+                    products.FirstOrDefault(p => p.Id == productId);
+
+            if (currentProduct is null)
+                return false;
+
+            currentProduct.StockQuantity = product.StockQuantity - qty;
+
+            return true;
+        }, ct);
+
+
+        // 6. Commit transaction
+        Console.WriteLine("Committing transaction...");
+        await Task.Delay(200, ct);
+
+
+
+        return true;
+
+    }
 
 }
