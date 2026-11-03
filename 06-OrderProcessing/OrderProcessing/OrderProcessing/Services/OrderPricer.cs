@@ -14,20 +14,38 @@ public class OrderPricer
     }
 
 
-    public async Task<decimal> PriceOrderAsync(Order order, CancellationToken ct)
+    public async Task PriceOrderAsync(Order order, CancellationToken ct)
     {
+        // Calculate subtotal first
+        await _pricingService.CalculateSubTotalAsync(order, ct);
 
-        decimal subTotal = await _pricingService.CalculateSubTotalAsync(order, ct);
-        Task<decimal> discount = _pricingService.GetDiscountAsync(order, ct);
-        Task<decimal> shippingCost = _pricingService.CalculateShippingCostAsync(order, ct);
+        // Concurrent
+        Task<decimal> discountTask = _pricingService.GetDiscountAsync(order, ct);
+        Task<decimal> shippingCostTask = _pricingService.CalculateShippingCostAsync(order, ct);
 
-        await Task.WhenAll(discount, shippingCost);
+        order.Discount = await discountTask;
+        order.ShippingCost = await shippingCostTask;
 
-        //return await subTotal - await discount + shippingCost;
+        order.TotalAmount = Math.Round(
+          order.SubTotal - order.Discount + order.ShippingCost,
+          2,
+          MidpointRounding.AwayFromZero);
+
+    }
+
+    public async Task PriceOrderSequentialAsync(Order order, CancellationToken ct)
+    {
+        await _pricingService.CalculateSubTotalAsync(order, ct);
+
+        // Sequential
+        order.Discount = await _pricingService.GetDiscountAsync(order, ct);
+        order.ShippingCost = await _pricingService.CalculateShippingCostAsync(order, ct);
 
 
-
-
+        order.TotalAmount = Math.Round(
+          order.SubTotal - order.Discount + order.ShippingCost,
+          2,
+          MidpointRounding.AwayFromZero);
     }
 
 

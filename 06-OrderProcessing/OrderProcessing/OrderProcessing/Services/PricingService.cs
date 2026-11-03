@@ -50,8 +50,8 @@ public class PricingService
 
         }
 
-
-        return Math.Round(subtotal, 2, MidpointRounding.AwayFromZero);
+        order.SubTotal = Math.Round(subtotal, 2, MidpointRounding.AwayFromZero);
+        return order.SubTotal;
     }
 
 
