@@ -11,7 +11,7 @@ public class ProductRepository
     public async Task<Product?> GetByIdAsync(int id, CancellationToken ct)
     {
         // Simulating connection with dataBase
-        Log.Info(DataFiles.products, "Open Connection . . ");
+        Log.Info(nameof(ProductRepository), "Open Connection . . ");
         await Task.Delay(200, ct);
 
         // Simulation processing a Query

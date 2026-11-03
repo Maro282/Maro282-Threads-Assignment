@@ -22,7 +22,7 @@ public class SyncOrderValidator
     public bool ValidateOrder(Order order)
     {
 
-        Log.Info(Name, $"Validating Order #{order.Id}...");
+        Log.Info(Name, $" Sync Validating Order #{order.Id}...");
 
         // 1- Check that customer exists
 

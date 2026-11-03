@@ -9,7 +9,7 @@ public class CustomerRepository
     public async Task<Customer?> GetByIdAsync(int id, CancellationToken ct)
     {
         // Simulating connection with dataBase
-        Log.Info(DataFiles.customers, "Open Connection . . ");
+        Log.Info(nameof(CustomerRepository), "Open Connection . . ");
         await Task.Delay(200, ct);
 
         // Simulation processing a Query
