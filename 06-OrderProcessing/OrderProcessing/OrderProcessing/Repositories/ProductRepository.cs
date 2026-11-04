@@ -116,4 +116,44 @@ public class ProductRepository
 
     }
 
+
+
+    public async Task<bool> ReleaseStockAsync(int productId, int qty, CancellationToken ct)
+    {
+
+        //Openning connection
+        Log.Info(nameof(ProductRepository), "Oppening Connection .. ");
+        await Task.Delay(200, ct);
+
+        //Begin Transation
+        Log.Info(nameof(ProductRepository), "Begining Transaction .. ");
+        await Task.Delay(100, ct);
+
+        //Updating product
+        Log.Info(nameof(ProductRepository), $"Updating stock for Product #{productId} (release {qty})...");
+        await Task.Delay(400, ct);
+
+        bool released = await JsonFileStore
+                      .UpdateJsonFileAsync<Product, bool>(DataFiles.products, products =>
+                      {
+                          Product? product = products.FirstOrDefault(p => p.Id == productId);
+                          if (product is null || product.StockQuantity <= 0) return false;
+                          product.StockQuantity += qty;
+                          return true;
+                      }, ct);
+
+        // Commiting
+        Log.Info(nameof(ProductRepository), "Committing transaction...");
+        await Task.Delay(200);
+
+        Log.Info(nameof(ProductRepository), released ? $"Released {qty} of Product #{productId}"
+                                           : $"Could not release {qty} of Product #{productId}");
+
+        return released;
+    }
+
+
+
+
+
 }
