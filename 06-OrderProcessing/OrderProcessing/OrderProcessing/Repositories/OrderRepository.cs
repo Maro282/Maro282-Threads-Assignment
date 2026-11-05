@@ -16,7 +16,7 @@ public class OrderRepository
         _failSaveForOrderIds = failSaveForOrderIds is null ? new HashSet<int>(Enumerable.Empty<int>()) : new HashSet<int>(failSaveForOrderIds);
     }
 
-    public async Task SaveAsync(Order order, CancellationToken ct)
+    public async Task SaveAsync(Order order, CancellationToken ct = default)
     {
 
         // injected failure: only when the order is saved as Completed
