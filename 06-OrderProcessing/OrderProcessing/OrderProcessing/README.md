@@ -51,3 +51,65 @@ because Task is a promise for a value so when the method reach await statement i
 version occupy a thread while the disk is reading?
 
 The two are an i/o bound operation but the difference is that while reading file the thread is blocked and do nothing with readAllText which is not happening in the ReadAllTextAsync.
+
+
+
+### Phase 2 aswers
+
+#### 1. What is the difference between starting a task and awaiting it?
+
+Starting a task means that the operation can begin executing without waiting for it to finish.
+
+Awaiting a task means waiting for that operation to complete before continuing with the next statement.
+
+#### 2. Does every Task create a new thread? Does Task.Delay() use a thread while waiting?
+
+No task doesn't create a thread, it takes thread from pool.
+
+Task.Delay() uses a timer to complete the task after the specified time. It does not keep a thread blocked while waiting.
+
+
+#### 3. What happens if you call .Result or .Wait() on an unfinished task instead of await? Why is it dangerous?
+
+Both .Result and .Wait() block the current thread until the task completes.
+
+This is dangerous because:
+- It blocks thread while waiting.
+- It can cause ThreadPool starvation when many operations block threads.
+
+await is preferred because it waits asynchronously without blocking the current thread.
+
+
+#### 4. What happens to an exception thrown inside a task that is never awaited?
+
+When an exception occurs inside a Task, the exception is stored in that Task. If the Task is never awaited  its exception is never observed 
+
+
+#### 5. When should you use Task.Run(), and when should you avoid it?
+
+Task.Run() is useful for CPU-bound operations
+
+We should  avoid wrapping  asynchronous I/O operations in Task.Run() because i/o bound operations already have asynchronous apis
+
+#### 6. What is the difference between Task and Task<T>?
+
+Task => return void
+Task<T> => returns a T type
+
+
+####  7. Why can a lock block not contain an await?
+because it is not guarantee to use the same thread again who takes the lock 
+
+
+
+#### 8. Why did the unprotected stock reservation oversell, and how did you prevent it?
+
+The unprotected stock reservation oversold because checking the available stock and updating it were not performed at the same step
+
+Both orders (#10 and #11) read the stock quantity at the same time and found that one item was available. Both orders passed the stock check and reserved the same item, causing overselling.
+
+How we prevented it:
+
+We used JsonFileStore.UpdateJsonFileAsync to perform the read, check, and update operations together
+
+This ensures that only one order can update the stock at a time. The second order reads the updated stock quantity and fails because no items are left.
