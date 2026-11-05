@@ -72,10 +72,16 @@ public class PricingService
         if (customer is null)
             throw new InvalidOperationException($"Customer #{order.CustomerId} not found");
 
-        // get order coupon
-        Coupon? coupon = order.CouponCode is null
-            ? null
-            : await _couponRepository.GetByCodeAsync(order.CouponCode, ct);
+        // get order coupon  // ========Updated=======
+        Coupon? coupon = null;
+        if (order.CouponCode is not null)
+        {
+            coupon = await _couponRepository.GetByCodeAsync(order.CouponCode, ct);
+
+            if (coupon is null) throw new InvalidCouponException($"Coupon '{order.CouponCode}' does not exist");
+            if (coupon.ExpiryDate < DateTime.Now) throw new InvalidCouponException($"Coupon '{order.CouponCode}' Expired");
+
+        }
 
 
 
@@ -152,6 +158,27 @@ public class PricingService
 
         return Math.Round(shippingCost, 2, MidpointRounding.AwayFromZero);
 
+    }
+
+
+    public async Task<decimal> CalculateTotalAsync(Order order, CancellationToken ct)
+    {
+        // Calculate subtotal first
+        await CalculateSubTotalAsync(order, ct);
+
+        // Concurrent
+        Task<decimal> discountTask = GetDiscountAsync(order, ct);
+        Task<decimal> shippingCostTask = CalculateShippingCostAsync(order, ct);
+
+        order.Discount = await discountTask;
+        order.ShippingCost = await shippingCostTask;
+
+        order.TotalAmount = Math.Round(
+          order.SubTotal - order.Discount + order.ShippingCost,
+          2,
+          MidpointRounding.AwayFromZero);
+
+        return order.TotalAmount;
     }
 
 
