@@ -7,6 +7,19 @@ namespace OrderProcessing.Services;
 public class PaymentGateway : IPaymentGateway
 {
     private readonly string Name = nameof(PaymentGateway);
+    private readonly HashSet<int> _timeoutOrderIds;
+    private readonly HashSet<int> _declinedOrderIds;
+
+
+    // Throw failure through constructors
+    public PaymentGateway(IEnumerable<int>? timeoutOrderIds = null, IEnumerable<int>? declinedOrderIds = null)
+    {
+        _timeoutOrderIds = new HashSet<int>(timeoutOrderIds ?? Enumerable.Empty<int>());
+        _declinedOrderIds = new HashSet<int>(declinedOrderIds ?? Enumerable.Empty<int>());
+    }
+
+
+
     public async Task<PaymentResult> ProcessPaymentAsync(int orderId, decimal amount, CancellationToken ct)
     {
         Log.Info(Name, $"Order #{orderId} -> Authorizing...");
@@ -15,26 +28,44 @@ public class PaymentGateway : IPaymentGateway
         Log.Info(Name, $"Order #{orderId} -> Fraud check...");
         await Task.Delay(500, ct);
 
+        if (_declinedOrderIds.Contains(orderId))
+        {
+            Log.Error(Name, $"Order #{orderId} -> Card declined by issuer");
+            await AddRecordAsync(orderId, amount, PaymentStatus.Declined, null, ct);
+
+            return new PaymentResult
+            {
+                Success = false,
+                TransactionId = null,
+                PaymentStatus = PaymentStatus.Declined,
+                Message = "Card declined by issuer"
+            };
+        }
+
         Log.Info(Name, $"Order #{orderId} -> Capturing...");
-        await Task.Delay(700, ct);
+        await Task.Delay(_timeoutOrderIds.Contains(orderId) ? 5000 : 700, ct);
 
         // Creating transaction fileName
         string transactionId = "TXN-" + Guid.NewGuid().ToString("N")[..12].ToUpper();
 
-        //write in file
-        await JsonFileStore.UpdateJsonFileAsync<PaymentTransaction, bool>(DataFiles.payments, payments =>
-        {
-            payments.Add(new PaymentTransaction
-            {
-                TransactionId = transactionId,
-                Amount = amount,
-                OrderId = orderId,
-                Status = PaymentStatus.Captured,
-                CreatedAt = DateTime.Now
-            });
-            return true;
+        await AddRecordAsync(orderId, amount, PaymentStatus.Captured, transactionId, ct);
 
-        }, ct);
+
+        // =========== we have replaced this code by addrecordAsync function =============
+        //write in file
+        //await JsonFileStore.UpdateJsonFileAsync<PaymentTransaction, bool>(DataFiles.payments, payments =>
+        //{
+        //    payments.Add(new PaymentTransaction
+        //    {
+        //        TransactionId = transactionId,
+        //        Amount = amount,
+        //        OrderId = orderId,
+        //        Status = PaymentStatus.Captured,
+        //        CreatedAt = DateTime.Now
+        //    });
+        //    return true;
+
+        //}, ct);
 
         return new PaymentResult
         {
@@ -78,5 +109,20 @@ public class PaymentGateway : IPaymentGateway
 
     }
 
-
+    // the payment record is written after the last delay
+    private static Task AddRecordAsync(int orderId, decimal amount, PaymentStatus status, string? transactionId, CancellationToken ct) =>
+        JsonFileStore.UpdateJsonFileAsync<PaymentTransaction, bool>(DataFiles.payments, payments =>
+        {
+            payments.Add(new PaymentTransaction
+            {
+                OrderId = orderId,
+                Amount = amount,
+                Status = status,
+                TransactionId = transactionId,
+                CreatedAt = DateTime.Now
+            });
+            return true;
+        }, ct);
 }
+
+
